@@ -500,7 +500,10 @@ class ObsidianFiles:
             List[str] or None: List of files in the specified directory, or None if the request failed
         """
         try:
-            cmd = "/vault/" if directory == "" else f"/vault/{directory}/"
+            # Remove any leading or trailing slashes from the directory
+            directory = directory.strip('/')
+            
+            cmd = "/vault" if not directory else f"/vault/{directory}"
             resp = self._send_request("GET", cmd=cmd)
             if resp and resp.status_code == 200:
                 logger.info(f"Successfully retrieved list of files in directory: {directory or 'root'}")
