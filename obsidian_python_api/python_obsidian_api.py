@@ -489,7 +489,7 @@ class ObsidianFiles:
             logger.error(f"Error in list_vault_root: {e}")
             return None
 
-    def _list_vault_directory(self, directory: str) -> List[str] or None:
+    def _list_vault_directory(self, directory: str = "") -> List[str] or None:
         """
         List files that exist in the specified directory of your vault.
 
@@ -500,12 +500,13 @@ class ObsidianFiles:
             List[str] or None: List of files in the specified directory, or None if the request failed
         """
         try:
-            resp = self._send_request("GET", cmd=f"/vault/{directory}/")
+            cmd = "/vault/" if directory == "" else f"/vault/{directory}/"
+            resp = self._send_request("GET", cmd=cmd)
             if resp and resp.status_code == 200:
-                logger.info(f"Successfully retrieved list of files in directory: {directory}")
+                logger.info(f"Successfully retrieved list of files in directory: {directory or 'root'}")
                 return resp.json().get('files', [])
             else:
-                logger.error(f"Failed to list files in directory: {directory}. Status code: {resp.status_code if resp else 'Unknown'}")
+                logger.error(f"Failed to list files in directory: {directory or 'root'}. Status code: {resp.status_code if resp else 'Unknown'}")
                 return None
         except Exception as e:
             logger.error(f"Error in list_vault_directory: {e}")
