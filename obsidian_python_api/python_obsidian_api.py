@@ -334,7 +334,7 @@ class ObsidianFiles:
         except Exception as e:
             logger.error(f"Error in open_file: {e}")
             return False
-        
+
     def _get_periodic_note(self, period: str) -> str or None:
         """
         Get current periodic note for the specified period.
@@ -349,10 +349,21 @@ class ObsidianFiles:
             resp = self._send_request("GET", cmd=f"/periodic/{period}/")
             if resp and resp.status_code == 200:
                 logger.info(f"Retrieved {period} periodic note successfully!")
-                return resp.text
+                content = resp.json()
+                if isinstance(content, dict) and 'type' in content and content['type'] == 'Buffer':
+                    # Decode the buffer
+                    return bytes(content['data']).decode('utf-8')
+                elif isinstance(content, str):
+                    return content
+                else:
+                    logger.error(f"Unexpected response format for {period} periodic note")
+                    return None
             else:
                 logger.error(f"Failed to get {period} periodic note. Status code: {resp.status_code if resp else 'Unknown'}")
                 return None
+        except json.JSONDecodeError:
+            # If it's not JSON, return the raw text
+            return resp.text
         except Exception as e:
             logger.error(f"Error in get_periodic_note: {e}")
             return None
