@@ -465,6 +465,47 @@ class ObsidianFiles:
         except Exception as e:
             logger.error(f"Error in insert_into_periodic_note: {e}")
             return False
+        
+    def _list_vault_root(self) -> List[str] or None:
+        """
+        List files that exist in the root of your vault.
+
+        Returns:
+            List[str] or None: List of files in the vault root, or None if the request failed
+        """
+        try:
+            resp = self._send_request("GET", cmd="/vault/")
+            if resp and resp.status_code == 200:
+                logger.info("Successfully retrieved list of files in vault root")
+                return resp.json().get('files', [])
+            else:
+                logger.error(f"Failed to list files in vault root. Status code: {resp.status_code if resp else 'Unknown'}")
+                return None
+        except Exception as e:
+            logger.error(f"Error in list_vault_root: {e}")
+            return None
+
+    def _list_vault_directory(self, directory: str) -> List[str] or None:
+        """
+        List files that exist in the specified directory of your vault.
+
+        Args:
+            directory (str): Path to the directory to list (relative to your vault root)
+
+        Returns:
+            List[str] or None: List of files in the specified directory, or None if the request failed
+        """
+        try:
+            resp = self._send_request("GET", cmd=f"/vault/{directory}/")
+            if resp and resp.status_code == 200:
+                logger.info(f"Successfully retrieved list of files in directory: {directory}")
+                return resp.json().get('files', [])
+            else:
+                logger.error(f"Failed to list files in directory: {directory}. Status code: {resp.status_code if resp else 'Unknown'}")
+                return None
+        except Exception as e:
+            logger.error(f"Error in list_vault_directory: {e}")
+            return None
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
