@@ -231,13 +231,20 @@ class ObsidianFiles:
             logger.error(f"Error in list_files_in_vault: {e}")
             return None
 
-    def _list_commands(self) -> List[Dict[str, any]] or None:
+    def _list_commands(self) -> List[str] or Dict[str, Any] or None:
         try:
             self.headers["accept"] = "application/json"
             resp = self._send_request("GET", cmd="/commands/")
             if resp and resp.status_code == 200:
                 logger.info("Fetched all the commands successfully!")
-                return resp.json()
+                content = resp.json()
+                if isinstance(content, list):
+                    return content
+                elif isinstance(content, dict):
+                    return content
+                else:
+                    logger.warning(f"Unexpected response type from list_commands: {type(content)}")
+                    return content
             else:
                 logger.error(f"Failed to fetch commands. Status code: {resp.status_code if resp else 'Unknown'}")
                 return None
