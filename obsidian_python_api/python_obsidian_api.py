@@ -334,6 +334,126 @@ class ObsidianFiles:
         except Exception as e:
             logger.error(f"Error in open_file: {e}")
             return False
+        
+    def _get_periodic_note(self, period: str) -> str or None:
+        """
+        Get current periodic note for the specified period.
+
+        Args:
+            period (str): The period type ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
+
+        Returns:
+            str or None: The content of the periodic note, or None if not found
+        """
+        try:
+            resp = self._send_request("GET", cmd=f"/periodic/{period}/")
+            if resp and resp.status_code == 200:
+                logger.info(f"Retrieved {period} periodic note successfully!")
+                return resp.text
+            else:
+                logger.error(f"Failed to get {period} periodic note. Status code: {resp.status_code if resp else 'Unknown'}")
+                return None
+        except Exception as e:
+            logger.error(f"Error in get_periodic_note: {e}")
+            return None
+
+    def _update_periodic_note(self, period: str, content: str) -> bool:
+        """
+        Update the content of a periodic note.
+
+        Args:
+            period (str): The period type ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
+            content (str): The new content for the note
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            resp = self._send_request("PUT", cmd=f"/periodic/{period}/", data=content)
+            if resp and resp.status_code == 204:
+                logger.info(f"Updated {period} periodic note successfully!")
+                return True
+            else:
+                logger.error(f"Failed to update {period} periodic note. Status code: {resp.status_code if resp else 'Unknown'}")
+                return False
+        except Exception as e:
+            logger.error(f"Error in update_periodic_note: {e}")
+            return False
+
+    def _append_to_periodic_note(self, period: str, content: str) -> bool:
+        """
+        Append content to a periodic note.
+
+        Args:
+            period (str): The period type ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
+            content (str): The content to append
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            resp = self._send_request("POST", cmd=f"/periodic/{period}/", data=content)
+            if resp and resp.status_code == 204:
+                logger.info(f"Appended to {period} periodic note successfully!")
+                return True
+            else:
+                logger.error(f"Failed to append to {period} periodic note. Status code: {resp.status_code if resp else 'Unknown'}")
+                return False
+        except Exception as e:
+            logger.error(f"Error in append_to_periodic_note: {e}")
+            return False
+
+    def _delete_periodic_note(self, period: str) -> bool:
+        """
+        Delete a periodic note.
+
+        Args:
+            period (str): The period type ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            resp = self._send_request("DELETE", cmd=f"/periodic/{period}/")
+            if resp and resp.status_code == 204:
+                logger.info(f"Deleted {period} periodic note successfully!")
+                return True
+            else:
+                logger.error(f"Failed to delete {period} periodic note. Status code: {resp.status_code if resp else 'Unknown'}")
+                return False
+        except Exception as e:
+            logger.error(f"Error in delete_periodic_note: {e}")
+            return False
+
+    def _insert_into_periodic_note(self, period: str, content: str, heading: str, insert_position: str = "end", heading_boundary: str = "::") -> bool:
+        """
+        Insert content into a periodic note relative to a heading within that document.
+
+        Args:
+            period (str): The period type ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
+            content (str): The content to insert
+            heading (str): Name of heading relative to which you would like your content inserted
+            insert_position (str): Position at which you would like your content inserted; "end" or "beginning"
+            heading_boundary (str): Set the nested header delimiter to a different value
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        self.headers["Heading"] = heading
+        self.headers["Content-Insertion-Position"] = insert_position
+        self.headers["Heading-Boundary"] = heading_boundary
+
+        try:
+            resp = self._send_request("PATCH", cmd=f"/periodic/{period}/", data=content)
+            if resp and resp.status_code == 200:
+                logger.info(f"Inserted content into {period} periodic note successfully!")
+                return True
+            else:
+                logger.error(f"Failed to insert content into {period} periodic note. Status code: {resp.status_code if resp else 'Unknown'}")
+                return False
+        except Exception as e:
+            logger.error(f"Error in insert_into_periodic_note: {e}")
+            return False
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
