@@ -503,7 +503,15 @@ class ObsidianFiles:
             # Remove any leading or trailing slashes from the directory
             directory = directory.strip('/')
             
-            cmd = "/vault" if not directory else f"/vault/{directory}"
+            # URL encode the directory path
+            encoded_directory = quote(directory)
+            
+            # Construct the command URL
+            if not directory:
+                cmd = "/vault/"
+            else:
+                cmd = f"/vault/{encoded_directory}/"
+
             resp = self._send_request("GET", cmd=cmd)
             if resp and resp.status_code == 200:
                 logger.info(f"Successfully retrieved list of files in directory: {directory or 'root'}")
