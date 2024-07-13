@@ -8,6 +8,7 @@ from typing import Any, Dict, List
 from requests import Request, Session
 from requests.exceptions import RequestException
 import json
+from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
 
@@ -252,12 +253,15 @@ class ObsidianFiles:
             logger.error(f"Error in list_commands: {e}")
             return None
 
+
     def _run_command(self, command_id: str) -> bool:
         try:
             self.headers["accept"] = "*/*"
-            resp = self._send_request("POST", cmd=f"/commands/{command_id}")
-            if resp and resp.status_code == 200:
-                logger.info("The command is executed successfully!")
+            # URL encode the command_id
+            encoded_command_id = quote(command_id)
+            resp = self._send_request("POST", cmd=f"/commands/{encoded_command_id}/")
+            if resp and resp.status_code in [200, 204]:  # Both 200 and 204 indicate success
+                logger.info(f"The command '{command_id}' was executed successfully!")
                 return True
             else:
                 logger.error(f"Failed to execute command. Status code: {resp.status_code if resp else 'Unknown'}")
@@ -505,6 +509,27 @@ class ObsidianFiles:
                 return None
         except Exception as e:
             logger.error(f"Error in list_vault_directory: {e}")
+            return None
+        
+    def get_server_status(self) -> Dict[str, Any] or None:
+        """
+        Returns basic details about the server.
+
+        Returns:
+            Dict[str, Any] or None: Server status information, or None if the request failed
+        """
+        try:
+            # This endpoint doesn't require authentication, so we'll create a new request without the auth header
+            headers = {'accept': 'application/json'}
+            resp = self._send_request("GET", cmd="/", headers=headers)
+            if resp and resp.status_code == 200:
+                logger.info("Successfully retrieved server status")
+                return resp.json()
+            else:
+                logger.error(f"Failed to get server status. Status code: {resp.status_code if resp else 'Unknown'}")
+                return None
+        except Exception as e:
+            logger.error(f"Error in get_server_status: {e}")
             return None
 
 if __name__ == "__main__":
