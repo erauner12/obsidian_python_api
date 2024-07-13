@@ -291,7 +291,12 @@ class ObsidianFiles:
     def _search_with_simple_query(self, query: str, content_length: int = 100) -> List[dict[str, any]] or None:
         try:
             self.headers["accept"] = "application/json"
-            resp = self._send_request("POST", cmd=f"/search/{query}&contextLength={content_length}")
+            # Update the endpoint to use the correct format and HTTP method
+            resp = self._send_request(
+                "POST",
+                cmd=f"/search/simple/?query={query}&contextLength={content_length}",
+                data=''
+            )
             if resp and resp.status_code == 200:
                 logger.info("Got the search results!")
                 return resp.json()
